@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- kubernetes/cert-manager
+- kubernetes/aad-pod-identity
+- kubernetes/github-action-runner-controller
+- kubernetes/github-action-runners
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+secretGenerator:
+- name: controller-manager
+  namespace: actions-runner-system
+  type: Opaque
+  # For Github App (https://github.com/actions-runner-controller/actions-runner-controller#deploying-using-github-app-authentication):
+  literals:
+  - github_app_id=${GITHUB_APP_ID}
+  - github_app_installation_id=${GITHUB_INSTALLATION_ID}
+  files:
+  - github_app_private_key
+  # For PAT Token (https://github.com/actions-runner-controller/actions-runner-controller#deploying-using-pat-authentication):
+  # literals:
+  # - github_token=${GITHUB_TOKEN}
+
+patches:
+- target:
+    group: aadpodidentity.k8s.io
+    kind: AzureIdentity
+    name: client-principal
+    version: v1
+  patch: |-
+    - op: replace
+      path: '/spec/resourceID'
+      value: ${RESOURCE_ID}
+    - op: replace
+      path: '/spec/clientID'
+      value: ${CLIENT_ID}
+# https://github.com/actions-runner-controller/actions-runner-controller/blob/master/charts/actions-runner-controller/crds/actions.summerwind.dev_runnerdeployments.yaml
+- target:
+    group: actions.summerwind.dev
+    kind: RunnerDeployment
+    name: runnerdeploy
+    version: v1alpha1
+  patch: |-
+    - op: replace # must be "remove" when targeting a repository only
+      path: '/spec/template/spec/organization'
+      value: ${GITHUB_ORGANIZATION_NAME}
+    # To use at repository level, uncomment the following block:
+    # - op: replace
+    #   path: '/spec/template/spec/repository'
+    #   value: ${GITHUB_ORGANIZATION_NAME}/${GITHUB_REPOSITORY_NAME}

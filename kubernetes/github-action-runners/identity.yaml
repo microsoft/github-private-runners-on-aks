@@ -1,0 +1,16 @@
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentity
+metadata:
+  name: client-principal
+spec:
+  type: 0
+  resourceID: dummy-id
+  clientID: dummy-id
+---
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentityBinding
+metadata:
+  name: client-principal-binding
+spec:
+  azureIdentity: client-principal
+  selector: client-principal

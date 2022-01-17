@@ -1,0 +1,94 @@
+name: Deploy AKS
+
+on:
+  workflow_dispatch:
+
+env:
+  ARM_SUBSCRIPTION_ID: xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx
+  TF_STATE_RG: __YOUR_RG_NAME__
+  TF_STATE_SA: __YOUR_SA_NAME__
+  TF_STATE_CONTAINER: __YOUR_BLOB_CONTAINER_NAME__
+  GITHUB_ORGANIZATION_NAME: __YOUR_ORGANIZATION_NAME__
+  GITHUB_APP_ID: __YOUR_GITHUB_APP_ID__
+  GITHUB_INSTALLATION_ID: __YOUR_GITHUB_INSTALLATION_ID__
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+          version: 'v1.18.8'        
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.1.0
+          terraform_wrapper: false
+      - name: Install Kustomize
+        run: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+      - name: Install Kapp
+        run: wget -O- https://carvel.dev/install.sh | bash
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Deploy Cluster
+        working-directory: cluster_deployment
+        run: |
+          terraform init \
+            -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
+            -backend-config="resource_group_name=$TF_STATE_RG" \
+            -backend-config="storage_account_name=$TF_STATE_SA" \
+            -backend-config="container_name=$TF_STATE_CONTAINER" \
+            -backend-config="key=github-private-runners-infra.tfstate"
+          terraform plan -out runners.tfplan
+          terraform apply runners.tfplan
+
+          echo "KUBECONFIG=$(terraform output -raw kube_config_path)" >> $GITHUB_ENV
+          echo "CLIENT_ID=$(terraform output -json runners_identity | jq -r '.client_id')" >> $GITHUB_ENV
+          echo "RESOURCE_ID=$(terraform output -json runners_identity | jq -r '.resource_id')" >> $GITHUB_ENV
+        env: 
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+      - name: 'Configure Cluster'
+        run: |
+          echo "$GITHUB_APP_PRIVATE_KEY" > github_app_private_key
+          envsubst < kustomization.template.yaml > kustomization.yaml
+          kapp --kubeconfig $KUBECONFIG --yes deploy --app stack -f <(kustomize build)
+          rm github_app_private_key
+
+          external_ip=""
+          while [ -z $external_ip ]; do
+            echo "Waiting for ingress to be assigned an IP"
+            external_ip=$(kubectl --kubeconfig $KUBECONFIG -n actions-runner-system get ing actions-runners-webhook-server --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}")
+            [ -z "$external_ip" ] && sleep 10
+          done
+
+          echo "Ingress public IP is $external_ip"
+          echo "WEBHOOK_URL=http://$external_ip" >> $GITHUB_ENV
+        env: 
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_APP_ID: ${{ env.GITHUB_APP_ID }}
+          GITHUB_INSTALLATION_ID: ${{ env.GITHUB_INSTALLATION_ID }}
+          GITHUB_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Add GitHub organization webhook
+        working-directory: github
+        run: |
+          terraform init \
+            -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
+            -backend-config="resource_group_name=$TF_STATE_RG" \
+            -backend-config="storage_account_name=$TF_STATE_SA" \
+            -backend-config="container_name=$TF_STATE_CONTAINER" \
+            -backend-config="key=github-private-runners-webhook.tfstate"
+          terraform plan -out github.tfplan
+          terraform apply github.tfplan
+        env:
+          GITHUB_OWNER: ${{ env.GITHUB_ORGANIZATION_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GH_ORG_WEBHOOK_ADMIN_ACCESS_TOKEN }}
+          TF_VAR_webhook_url: ${{ env.WEBHOOK_URL }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}

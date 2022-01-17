@@ -1,0 +1,30 @@
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: runnerdeploy
+spec:
+  template:
+    metadata: 
+      labels:
+        aadpodidbinding: client-principal
+    spec:
+      image: summerwind/actions-runner:latest
+      organization: dummy
+      env: []
+---
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: HorizontalRunnerAutoscaler
+metadata:
+  name: runner-deployment-autoscaler
+spec:
+  minReplicas: 0
+  maxReplicas: 10
+  scaleTargetRef:
+    name: runnerdeploy
+  scaleUpTriggers:
+  - githubEvent:
+      checkRun:
+        types: ["created"]
+        status: "queued"
+    duration: "1m"
+---

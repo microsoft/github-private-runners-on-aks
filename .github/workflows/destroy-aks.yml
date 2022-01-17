@@ -1,0 +1,56 @@
+name: Destroy AKS
+
+on:
+  workflow_dispatch:
+
+env:
+  ARM_SUBSCRIPTION_ID: xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxx
+  TF_STATE_RG: __YOUR_RG_NAME__
+  TF_STATE_SA: __YOUR_SA_NAME__
+  TF_STATE_CONTAINER: __YOUR_BLOB_CONTAINER_NAME__
+  GITHUB_ORGANIZATION_NAME: __YOUR_ORGANIZATION_NAME__
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:  
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.1.0
+          terraform_wrapper: false
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Clean GitHub organization webhook
+        working-directory: github
+        run: |
+          terraform init \
+            -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
+            -backend-config="resource_group_name=$TF_STATE_RG" \
+            -backend-config="storage_account_name=$TF_STATE_SA" \
+            -backend-config="container_name=$TF_STATE_CONTAINER" \
+            -backend-config="key=github-private-runners-webhook.tfstate"
+          terraform destroy -auto-approve
+        env:
+          GITHUB_OWNER: ${{ env.GITHUB_ORGANIZATION_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GH_ORG_WEBHOOK_ADMIN_ACCESS_TOKEN }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+      - name: Destroy Cluster
+        working-directory: cluster_deployment
+        run: |
+          terraform init \
+            -backend-config="subscription_id=$ARM_SUBSCRIPTION_ID" \
+            -backend-config="resource_group_name=$TF_STATE_RG" \
+            -backend-config="storage_account_name=$TF_STATE_SA" \
+            -backend-config="container_name=$TF_STATE_CONTAINER" \
+            -backend-config="key=github-private-runners-infra.tfstate"
+          terraform destroy -auto-approve
+        env: 
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
