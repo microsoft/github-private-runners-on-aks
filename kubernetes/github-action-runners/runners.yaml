@@ -11,6 +11,9 @@ spec:
       image: summerwind/actions-runner:latest
       organization: dummy
       env: []
+      resources:
+        requests:
+          memory: "500Mi"
 ---
 apiVersion: actions.summerwind.dev/v1alpha1
 kind: HorizontalRunnerAutoscaler
