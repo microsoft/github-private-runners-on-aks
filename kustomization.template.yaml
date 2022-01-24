@@ -5,6 +5,7 @@ resources:
 - kubernetes/cert-manager
 - kubernetes/aad-pod-identity
 - kubernetes/github-action-runner-controller
+- kubernetes/github-action-runner-controller-webhook
 - kubernetes/github-action-runners
 
 generatorOptions:
@@ -51,3 +52,9 @@ patches:
     # - op: replace
     #   path: '/spec/template/spec/repository'
     #   value: ${GITHUB_ORGANIZATION_NAME}/${GITHUB_REPOSITORY_NAME}
+- target:
+    group: actions.summerwind.dev
+    kind: HorizontalRunnerAutoscaler
+    name: runner-deployment-autoscaler
+    version: v1alpha1
+  path: patch-metrics-scaling.yaml # patch-webhook-scaling.yaml

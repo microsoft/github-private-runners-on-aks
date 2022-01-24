@@ -17,14 +17,13 @@ kind: HorizontalRunnerAutoscaler
 metadata:
   name: runner-deployment-autoscaler
 spec:
+  # Runners in the targeted RunnerDeployment won't be scaled down
+  # for 5 minutes instead of the default 10 minutes now
+  scaleDownDelaySecondsAfterScaleOut: 300
   minReplicas: 0
-  maxReplicas: 10
+  maxReplicas: 300
   scaleTargetRef:
     name: runnerdeploy
-  scaleUpTriggers:
-  - githubEvent:
-      checkRun:
-        types: ["created"]
-        status: "queued"
-    duration: "1m"
+  scaleUpTriggers: [] # https://github.com/actions-runner-controller/actions-runner-controller#webhook-driven-scaling
+  metrics: [] # https://github.com/actions-runner-controller/actions-runner-controller#pull-driven-scaling
 ---
