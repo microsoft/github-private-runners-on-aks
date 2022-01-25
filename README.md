@@ -1,37 +1,83 @@
 # GitHub Self Hosted Runners
 
-## Pre requisites
+The goal of this repository is to demonstrate how to use GitHub private runners on an AKS cluster by leveraging [actions-runner-controller](https://github.com/actions-runner-controller/actions-runner-controller).  
 
-- Add secrets in the self hosted runners repository: 
-    - **ARM_CLIENT_ID**: an Azure Service Principal Client ID which will be used to deploy infrastructure
-    - **ARM_CLIENT_SECRET**: an Azure Service Principal Client Secret which will be used to deploy infrastructure
-    - **ARM_TENANT_ID**: the tenant ID where the Azure Service Principal lives
+This is useful for DevOps bootstraping a project CI/CD for Azure Infra / Apps development.  
 
-In case you want your runners to be able to register/unregister to GitHub runners pool using a PAT, you'll have to create following secret: 
-    
-- **ACCESS_TOKEN**: a GitHub Personal Access Token with at least `admin:org`, `admin:org_hook`, `notifications`, `read:public_key`, `read:repo_hook`, `repo` and `workflow` scopes.
+The solution is:
 
-In case you want your runners to be able to register/unregister to GitHub runners pool using a GitHub App, you'll have to:
-- Create a GitHub App on your [organization](https://github.com/organizations/:org/settings/apps/new?url=http://github.com/actions-runner-controller/actions-runner-controller&webhook_active=false&public=false&administration=write&organization_self_hosted_runners=write&actions=read&checks=read) (make sure to replace `:org` in the link by your organization name) / [account](https://github.com/settings/apps/new?url=http://github.com/actions-runner-controller/actions-runner-controller&webhook_active=false&public=false&administration=write&actions=read).
-- Generate a private key, make sure to download the file as we'll need it to setup a secret
-- Install the GitHub App
-- Add secret **GH_APP_PRIVATE_KEY** in the self hosted runners repository: the content of the private key generated in a previous step
-- Add secret **GH_ORG_WEBHOOK_ADMIN_ACCESS_TOKEN** in the self hosted runners repository: A personal access token with `admin:org_hook`, `repo` and `workflow` scopes.
+- Private
+- Scalable
+- Secured
+- Cost optimized
 
-## Tooling used:
-- [Terraform](https://www.terraform.io/)
-- [KApp](https://carvel.dev/kapp/)
-- [Kustomize](https://kustomize.io/)
+## Scaling Options
 
-## Solution organization:
+There are 2 options for scaling:
 
-- `cluster_deployment` folder contains terraform configuration to manage the AKS cluster, its network and managed identities needed as part of the solution. Module documentation is [here](cluster_deployment/module.md)
+### Webhooks driven (push scaling)
 
-- `github` folder contains a terraform configuration to manage the github webhook to be configured on your organization enabling scaling on demand runners. Module documentation is [here](github/module.md)
+![Webhooks](./img/webhooks.gif)
 
-- `kubernetes` folder contains the different integrated solutions used in this solution and some custom configuration regarding the runners you need. Currently this solution leverages following components : 
-    - [Github Action Controller](https://github.com/actions-runner-controller/actions-runner-controller)
-    - [AAD Pod Identity](https://github.com/Azure/aad-pod-identity)
-    - [Cert Manager](https://cert-manager.io/docs/)
+Note: in the configuration, your cluster has to be reachable from github.
 
-- `test` folder contains a dummy terraform configuration. It's useful to perform a resource deployment from the self hosted runners using the identity attached to it.
+### Metrics driven (pull scaling)
+
+![Metrics](./img/metrics.gif)
+
+More information on [action-runner-controller repository](https://github.com/actions-runner-controller/actions-runner-controller#autoscaling).
+
+## Required Tooling
+
+- For Deployment
+  - [Terraform](https://www.terraform.io/)
+
+- For Cluster Configuration
+  - [Kapp](https://carvel.dev/kapp/)
+  - [Kustomize](https://kustomize.io/)
+
+## GitHub integration
+
+For AKS to be able to communicate with github, there are 2 possibilities:
+
+- using an **ACCESS_TOKEN**: a GitHub Personal Access Token with at least `admin:org`, `admin:org_hook`, `notifications`, `read:public_key`, `read:repo_hook`, `repo` and `workflow` scopes.
+- using a **GitHub App**: create one in your [organization](https://github.com/organizations/:org/settings/apps/new) (make sure to replace `:org` in the link by your organization name) or [account](https://github.com/settings/apps/new).
+  - Note the **app_id**
+  - Generate a private key, make sure to download the file as we'll need it to setup a secret
+  - Install the GitHub App and note the **installation_id**
+  - Add secret **GH_APP_PRIVATE_KEY** in the self hosted runners repository: the content of the private key generated in a previous step
+  - Add secret **GH_ORG_WEBHOOK_ADMIN_ACCESS_TOKEN** in the self hosted runners repository: A personal access token with `admin:org_hook`, `repo` and `workflow` scopes.
+
+For more information, see [GitHub documentation](https://docs.github.com/en/developers/apps/getting-started-with-apps/about-apps).
+
+## Solution organization
+
+- `cluster_deployment` contains terraform configuration to manage the AKS cluster, its network and managed identities needed as part of the solution. Module documentation [here](cluster_deployment/module.md)
+- `github` contains a terraform configuration to manage the github webhook to be configured on your organization enabling scaling on demand runners. Module documentation [here](github/module.md)
+- `kubernetes` contains the different integrated solutions used in this solution and some custom configuration regarding the runners you need. Currently this solution leverages following components:
+  - [Github Action Controller](https://github.com/actions-runner-controller/actions-runner-controller)
+  - [AAD Pod Identity](https://github.com/Azure/aad-pod-identity)
+  - [Cert Manager](https://cert-manager.io/docs/)
+- `test` contains a dummy terraform configuration. It's useful to perform a resource deployment from the self hosted runners using the identity attached to it.
+
+## Tips & Tricks
+
+- AAD Pod identity being decomissionned, it should be replaced with [Azure Workload Identity](https://azure.github.io/azure-workload-identity/docs/installation.html)
+- RBAC roles must be set as per documentation
+- actions-runner-controller: the webhook server can only be deployed with Helm Chart; thus a custom deployment has been added to this repository
+- **Never use private runners on public repo since anyone can use them**
+
+## Cost Simulation
+
+Hypotheses:
+
+- Deploying in West Europe
+- Nothing else is installed on the cluster
+- Pods request 500Mi of memory
+
+| | S (B2s) | M (DS2_v2) | L (D4s_v3) |
+|---|---|---|---|
+| Cost for 1 Node | 29.55€ | 83.72€ | 147.75€ |
+| # of runners | 1 | 9 | 22 |
+
+Note: when using Webhooks scaling with an Application Gateway, add 90.70€ / month (could be replaced with a Nginx LB to reduce cost)
