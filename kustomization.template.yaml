@@ -57,4 +57,4 @@ patches:
     kind: HorizontalRunnerAutoscaler
     name: runner-deployment-autoscaler
     version: v1alpha1
-  path: patch-metrics-scaling.yaml # patch-webhook-scaling.yaml
+  path: patch-webhook-scaling.yaml # patch-metrics-scaling.yaml
