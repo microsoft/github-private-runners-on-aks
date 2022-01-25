@@ -1,0 +1,9 @@
+- op: add
+  path: '/spec/scaleUpTriggers/-'
+  value:
+    name: githubEvent
+    value:
+      checkRun:
+        types: ["created"]
+        status: "queued"
+      duration: "1m"

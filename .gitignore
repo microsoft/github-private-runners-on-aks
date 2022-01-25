@@ -4,7 +4,8 @@
 
 *.auto.tfvars
 
-patch-*.yaml
+kustomization.yaml
+
 kubeconfig_*
 
 /.vsls.json
