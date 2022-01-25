@@ -77,3 +77,5 @@ Hypotheses:
 |---|---|---|---|
 | Cost for 1 Node | 29.55€ | 83.72€ | 147.75€ |
 | # of runners | 1 | 9 | 22 |
+
+Note: when using Webhooks scaling with an Application Gateway, add 90.70€ / month (could be replaced with a Nginx LB to reduce cost)
