@@ -4,7 +4,7 @@ The goal of this repository is to demonstrate how to use GitHub private runners 
 
 This is useful for DevOps bootstraping a project CI/CD for Azure Infra / Apps development.  
 
-The solution is
+The solution is:
 
 - Private
 - Scalable
@@ -15,12 +15,14 @@ The solution is
 
 There are 2 options for scaling:
 
-Using webhooks (push scaling):
+### Webhooks driven (push scaling)
+
 ![Webhooks](./img/webhooks.gif)
 
 Note: in the configuration, your cluster has to be reachable from github.
 
-Using metrics (pull scaling):
+### Metrics driven (pull scaling)
+
 ![Metrics](./img/metrics.gif)
 
 More information on [action-runner-controller repository](https://github.com/actions-runner-controller/actions-runner-controller#autoscaling).
@@ -46,7 +48,7 @@ For AKS to be able to communicate with github, there are 2 possibilities:
   - Add secret **GH_APP_PRIVATE_KEY** in the self hosted runners repository: the content of the private key generated in a previous step
   - Add secret **GH_ORG_WEBHOOK_ADMIN_ACCESS_TOKEN** in the self hosted runners repository: A personal access token with `admin:org_hook`, `repo` and `workflow` scopes.
 
-For more informatio, see [GitHub documentation](https://docs.github.com/en/developers/apps/getting-started-with-apps/about-apps).
+For more information, see [GitHub documentation](https://docs.github.com/en/developers/apps/getting-started-with-apps/about-apps).
 
 ## Solution organization
 
