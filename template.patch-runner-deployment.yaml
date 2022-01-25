@@ -1,0 +1,7 @@
+- op: replace # must be "remove" when targeting a repository only
+  path: '/spec/template/spec/organization'
+  value: <GITHUB_ORGANIZATION_NAME>
+# To use at repository level, uncomment the following block:
+# - op: replace
+#   path: '/spec/template/spec/repository'
+#   value: <GITHUB_ORGANIZATION_NAME/GITHUB_REPOSITORY_NAME>

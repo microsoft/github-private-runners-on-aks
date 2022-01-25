@@ -1,8 +1,0 @@
-- op: add
-  path: '/spec/metrics/-'
-  value:
-    type: PercentageRunnersBusy
-    scaleUpThreshold: '0.75'    # The percentage of busy runners at which the number of desired runners are re-evaluated to scale up
-    scaleDownThreshold: '0.3'   # The percentage of busy runners at which the number of desired runners are re-evaluated to scale down
-    scaleUpFactor: '1.4'        # The scale up multiplier factor applied to desired count
-    scaleDownFactor: '0.7'      # The scale down multiplier factor applied to desired count

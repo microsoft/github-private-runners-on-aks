@@ -54,8 +54,44 @@ jobs:
 
       - name: 'Configure Cluster'
         run: |
+          cat <<EOF >patch-controller-manager-secret.yaml
+          - op: add
+            path: '/data/github_app_id'
+            value: $(echo -n ${GITHUB_APP_ID} | base64)
+          - op: add
+            path: '/data/github_app_installation_id'
+            value: $(echo -n ${GITHUB_INSTALLATION_ID} | base64)
+          EOF
+
+          cat <<EOF >patch-aad-pod-identity.yaml
+          - op: replace
+            path: '/spec/resourceID'
+            value: ${RESOURCE_ID}
+          - op: replace
+            path: '/spec/clientID'
+            value: ${CLIENT_ID}
+          EOF
+
+          cat <<EOF >patch-autoscaler.yaml
+          - op: add
+            path: '/spec/scaleUpTriggers/-'
+            value:
+              name: githubEvent
+              value:
+                checkRun:
+                  types: ["created"]
+                  status: "queued"
+                duration: "1m"
+          EOF
+
+          cat <<EOF >patch-runner-deployment.yaml
+          - op: replace
+            path: '/spec/template/spec/organization'
+            value: ${GITHUB_ORGANIZATION_NAME}
+          EOF
+
           echo "$GITHUB_APP_PRIVATE_KEY" > github_app_private_key
-          envsubst < kustomization.template.yaml > kustomization.yaml
+
           kapp --kubeconfig $KUBECONFIG --yes deploy --app stack -f <(kustomize build)
           rm github_app_private_key
 
