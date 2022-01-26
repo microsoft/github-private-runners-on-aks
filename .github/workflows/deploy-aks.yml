@@ -104,8 +104,7 @@ jobs:
 
           echo "Ingress public IP is $external_ip"
           echo "WEBHOOK_URL=http://$external_ip" >> $GITHUB_ENV
-        env: 
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        env:
           GITHUB_APP_ID: ${{ env.GITHUB_APP_ID }}
           GITHUB_INSTALLATION_ID: ${{ env.GITHUB_INSTALLATION_ID }}
           GITHUB_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
@@ -123,7 +122,6 @@ jobs:
           terraform apply github.tfplan
         env:
           GITHUB_OWNER: ${{ env.GITHUB_ORGANIZATION_NAME }}
-          GITHUB_TOKEN: ${{ secrets.GH_ORG_WEBHOOK_ADMIN_ACCESS_TOKEN }}
           TF_VAR_webhook_url: ${{ env.WEBHOOK_URL }}
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
