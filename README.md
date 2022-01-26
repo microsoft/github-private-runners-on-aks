@@ -72,8 +72,8 @@ An [example pipeline](.github/workflows/selfhosted-runner-test.yml) is provided 
 ## Tips & Tricks
 
 - AAD Pod identity being decomissionned, it should be replaced with [Azure Workload Identity](https://azure.github.io/azure-workload-identity/docs/installation.html)
-- RBAC roles must be set as per documentation
-- actions-runner-controller: the webhook server can only be deployed with Helm Chart; thus a custom deployment has been added to this repository
+- RBAC roles must be set as per [documentation](https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/#performing-role-assignments)
+- actions-runner-controller: the webhook server is not provided by default; thus a custom deployment has been added to this repository
 - **Never use private runners on public repo since anyone can use them**
 
 ## Cost Simulation
@@ -89,4 +89,4 @@ Hypotheses:
 | Cost for 1 Node | 29.55€ | 83.72€ | 147.75€ |
 | # of runners | 1 | 9 | 22 |
 
-Note: when using Webhooks scaling with an Application Gateway, add 90.70€ / month (could be replaced with a Nginx LB to reduce cost)
+Note: when using Webhooks scaling with an Application Gateway, add 90.70€ / month (could be replaced with a Nginx LB to reduce cost). This option can be disabled when setting the `enable_agic` variable to `false` (from the `cluster_deployment/variables.tf` file).
