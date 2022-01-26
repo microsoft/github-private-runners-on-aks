@@ -5,7 +5,7 @@ resources:
 - kubernetes/cert-manager
 - kubernetes/aad-pod-identity
 - kubernetes/github-action-runner-controller
-# - kubernetes/github-action-runner-controller-webhook # comment when using Metrics scaling
+- kubernetes/github-action-runner-controller-webhook # comment when using Metrics scaling
 - kubernetes/github-action-runners
 
 generatorOptions:
