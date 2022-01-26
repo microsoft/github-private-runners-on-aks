@@ -8,7 +8,8 @@ kubeconfig_*
 
 /.vsls.json
 
-patch-*.yaml
+/patch-*.yaml
+
 github_app_private_key*
 
 # .tfstate files

@@ -50,15 +50,24 @@ For AKS to be able to communicate with github, there are 2 possibilities:
 
 For more information, see [GitHub documentation](https://docs.github.com/en/developers/apps/getting-started-with-apps/about-apps).
 
-## Solution organization
+## Deployment
 
-- `cluster_deployment` contains terraform configuration to manage the AKS cluster, its network and managed identities needed as part of the solution. Module documentation [here](cluster_deployment/module.md)
-- `github` contains a terraform configuration to manage the github webhook to be configured on your organization enabling scaling on demand runners. Module documentation [here](github/module.md)
-- `kubernetes` contains the different integrated solutions used in this solution and some custom configuration regarding the runners you need. Currently this solution leverages following components:
-  - [Github Action Controller](https://github.com/actions-runner-controller/actions-runner-controller)
-  - [AAD Pod Identity](https://github.com/Azure/aad-pod-identity)
-  - [Cert Manager](https://cert-manager.io/docs/)
-- `test` contains a dummy terraform configuration. It's useful to perform a resource deployment from the self hosted runners using the identity attached to it.
+### Deploy the infrastructure
+
+To deploy the infrastructure with Terraform, use the `cluster_deployment` folder. It contains terraform configuration to manage the AKS cluster, its network and managed identities needed as part of the solution.
+
+### Configure the cluster
+
+To configure the cluster with Kapp and Kustomize, generate the patches (examples are provided in the `patch_examples` directory) and the `github_app_private_key` file (to be downloaded from GitHub).
+Then, run Kapp.
+
+### Configure Github webhook
+
+Webhook on github can be automatically configured using the terraform `github` folder.
+
+### Test the self-hosted runners
+
+An [example pipeline](.github/workflows/selfhosted-runner-test.yml) is provided that will request private runners. It will deploy a resource group using Terraform.
 
 ## Tips & Tricks
 
