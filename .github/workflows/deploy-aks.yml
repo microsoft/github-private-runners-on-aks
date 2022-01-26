@@ -121,6 +121,7 @@ jobs:
           terraform plan -out github.tfplan
           terraform apply github.tfplan
         env:
+          GITHUB_TOKEN: ${{ secrets.GH_ORG_WEBHOOK_ADMIN_ACCESS_TOKEN }}
           GITHUB_OWNER: ${{ env.GITHUB_ORGANIZATION_NAME }}
           TF_VAR_webhook_url: ${{ env.WEBHOOK_URL }}
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
