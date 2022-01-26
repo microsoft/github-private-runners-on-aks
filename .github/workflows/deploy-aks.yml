@@ -41,7 +41,7 @@ jobs:
             -backend-config="storage_account_name=$TF_STATE_SA" \
             -backend-config="container_name=$TF_STATE_CONTAINER" \
             -backend-config="key=github-private-runners-infra.tfstate"
-          terraform plan -out runners.tfplan
+          terraform plan -var="enable_agic=true" -out runners.tfplan
           terraform apply runners.tfplan
 
           echo "KUBECONFIG=$(terraform output -raw kube_config_path)" >> $GITHUB_ENV

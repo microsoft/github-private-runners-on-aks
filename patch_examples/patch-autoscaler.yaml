@@ -2,12 +2,12 @@
 - op: add
   path: '/spec/scaleUpTriggers/-'
   value:
-    name: githubEvent
-    value:
+    githubEvent:
       checkRun:
         types: ["created"]
         status: "queued"
-      duration: "1m"
+    duration: "1m"
+    amount: 1
 # Use the following block to enable Metrics Scaling
 # - op: add
 #   path: '/spec/metrics/-'
