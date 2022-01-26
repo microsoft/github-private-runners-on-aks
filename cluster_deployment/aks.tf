@@ -38,7 +38,7 @@ resource "azurerm_kubernetes_cluster" "github_runners" {
 
   addon_profile {
     ingress_application_gateway {
-      enabled   = true
+      enabled   = var.enable_agic
       subnet_id = azurerm_subnet.app_gw.id
     }
   }
