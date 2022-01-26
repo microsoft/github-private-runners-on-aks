@@ -54,8 +54,44 @@ jobs:
 
       - name: 'Configure Cluster'
         run: |
+          cat <<EOF >patch-controller-manager-secret.yaml
+          - op: add
+            path: '/data/github_app_id'
+            value: $(echo -n ${GITHUB_APP_ID} | base64)
+          - op: add
+            path: '/data/github_app_installation_id'
+            value: $(echo -n ${GITHUB_INSTALLATION_ID} | base64)
+          EOF
+
+          cat <<EOF >patch-aad-pod-identity.yaml
+          - op: replace
+            path: '/spec/resourceID'
+            value: ${RESOURCE_ID}
+          - op: replace
+            path: '/spec/clientID'
+            value: ${CLIENT_ID}
+          EOF
+
+          cat <<EOF >patch-autoscaler.yaml
+          - op: add
+            path: '/spec/scaleUpTriggers/-'
+            value:
+              name: githubEvent
+              value:
+                checkRun:
+                  types: ["created"]
+                  status: "queued"
+                duration: "1m"
+          EOF
+
+          cat <<EOF >patch-runner-deployment.yaml
+          - op: replace
+            path: '/spec/template/spec/organization'
+            value: ${GITHUB_ORGANIZATION_NAME}
+          EOF
+
           echo "$GITHUB_APP_PRIVATE_KEY" > github_app_private_key
-          envsubst < kustomization.template.yaml > kustomization.yaml
+
           kapp --kubeconfig $KUBECONFIG --yes deploy --app stack -f <(kustomize build)
           rm github_app_private_key
 
@@ -68,8 +104,7 @@ jobs:
 
           echo "Ingress public IP is $external_ip"
           echo "WEBHOOK_URL=http://$external_ip" >> $GITHUB_ENV
-        env: 
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        env:
           GITHUB_APP_ID: ${{ env.GITHUB_APP_ID }}
           GITHUB_INSTALLATION_ID: ${{ env.GITHUB_INSTALLATION_ID }}
           GITHUB_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
@@ -86,8 +121,8 @@ jobs:
           terraform plan -out github.tfplan
           terraform apply github.tfplan
         env:
-          GITHUB_OWNER: ${{ env.GITHUB_ORGANIZATION_NAME }}
           GITHUB_TOKEN: ${{ secrets.GH_ORG_WEBHOOK_ADMIN_ACCESS_TOKEN }}
+          GITHUB_OWNER: ${{ env.GITHUB_ORGANIZATION_NAME }}
           TF_VAR_webhook_url: ${{ env.WEBHOOK_URL }}
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}

@@ -1,0 +1,6 @@
+- op: replace
+  path: '/spec/resourceID'
+  value: <VALUE>
+- op: replace
+  path: '/spec/clientID'
+  value: <VALUE>

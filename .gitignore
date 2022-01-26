@@ -4,13 +4,13 @@
 
 *.auto.tfvars
 
-kustomization.yaml
-
 kubeconfig_*
 
 /.vsls.json
 
-github_app_private_key
+/patch-*.yaml
+
+github_app_private_key*
 
 # .tfstate files
 *.tfstate

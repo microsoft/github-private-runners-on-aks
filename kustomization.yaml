@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- kubernetes/cert-manager
+- kubernetes/aad-pod-identity
+- kubernetes/github-action-runner-controller
+- kubernetes/github-action-runner-controller-webhook # comment when using Metrics scaling
+- kubernetes/github-action-runners
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+secretGenerator:
+- name: controller-manager
+  namespace: actions-runner-system
+  type: Opaque
+  files:
+  - github_app_private_key
+
+patches:
+- target:
+    kind: Secret
+    name: controller-manager
+    version: v1
+  path: patch-controller-manager-secret.yaml
+- target:
+    group: aadpodidentity.k8s.io
+    kind: AzureIdentity
+    name: client-principal
+    version: v1
+  path: patch-aad-pod-identity.yaml
+# https://github.com/actions-runner-controller/actions-runner-controller/blob/master/charts/actions-runner-controller/crds/actions.summerwind.dev_runnerdeployments.yaml
+- target:
+    group: actions.summerwind.dev
+    kind: RunnerDeployment
+    name: runnerdeploy
+    version: v1alpha1
+  path: patch-runner-deployment.yaml
+- target:
+    group: actions.summerwind.dev
+    kind: HorizontalRunnerAutoscaler
+    name: runner-deployment-autoscaler
+    version: v1alpha1
+  path: patch-autoscaler.yaml
