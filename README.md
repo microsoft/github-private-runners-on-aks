@@ -41,7 +41,7 @@ More information on [action-runner-controller repository](https://github.com/act
 For AKS to be able to communicate with github, there are 2 possibilities:
 
 - using an **ACCESS_TOKEN**: a GitHub Personal Access Token with at least `admin:org`, `admin:org_hook`, `notifications`, `read:public_key`, `read:repo_hook`, `repo` and `workflow` scopes.
-- using a **GitHub App**: create one in your [organization](https://github.com/organizations/:org/settings/apps/new) (make sure to replace `:org` in the link by your organization name) or [account](https://github.com/settings/apps/new).
+- using a **GitHub App**: create one in your [organization](https://github.com/organizations/:org/settings/apps/new?url=http://my-runners.info&webhook_active=false&public=false&administration=write&organization_self_hosted_runners=write&actions=read&checks=read) (make sure to replace `:org` in the link by your organization name) or [account](https://github.com/settings/apps/new?url=http://my-runners.info&webhook_active=false&public=false&administration=write&organization_self_hosted_runners=write&actions=read&checks=read). 
   - Note the **app_id**
   - Generate a private key, make sure to download the file as we'll need it to setup a secret
   - Install the GitHub App and note the **installation_id**
