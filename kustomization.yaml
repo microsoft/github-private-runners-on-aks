@@ -5,6 +5,7 @@ resources:
 - kubernetes/cert-manager
 - kubernetes/aad-pod-identity
 - kubernetes/github-action-runner-controller
+- kubernetes/github-action-runner-controller-webhook # comment when using Metrics scaling
 
 generatorOptions:
   disableNameSuffixHash: true

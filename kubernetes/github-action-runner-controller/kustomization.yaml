@@ -5,10 +5,5 @@ namespace: actions-runner-system
 
 resources:
 - github.com/actions-runner-controller/actions-runner-controller/config//default?ref=v0.22.2
-- github.com/actions-runner-controller/actions-runner-controller/config//github-webhook-server?ref=v0.22.2
-- ingress.yaml
 - identity.yaml
 - runners.yaml
-
-patchesStrategicMerge:
-- https://raw.githubusercontent.com/actions-runner-controller/actions-runner-controller/v0.22.2/config/default/gh-webhook-server-auth-proxy-patch.yaml
