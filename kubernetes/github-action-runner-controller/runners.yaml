@@ -11,9 +11,9 @@ spec:
       image: summerwind/actions-runner:latest
       organization: dummy
       env: []
-      resources:
-        requests:
-          memory: "500Mi"
+      # resources:
+      #   requests:
+      #     memory: "500Mi"
 ---
 apiVersion: actions.summerwind.dev/v1alpha1
 kind: HorizontalRunnerAutoscaler
@@ -24,7 +24,7 @@ spec:
   # for 5 minutes instead of the default 10 minutes now
   scaleDownDelaySecondsAfterScaleOut: 300
   minReplicas: 0
-  maxReplicas: 300
+  maxReplicas: 100 # Note: too many replicas might trigger the API rate limit
   scaleTargetRef:
     name: runnerdeploy
   scaleUpTriggers: [] # https://github.com/actions-runner-controller/actions-runner-controller#webhook-driven-scaling
