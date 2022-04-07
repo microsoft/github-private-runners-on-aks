@@ -4,4 +4,6 @@ kind: Kustomization
 namespace: actions-runner-system
 
 resources:
-- github.com/actions-runner-controller/actions-runner-controller/config//default?ref=v0.20.4
+- github.com/actions-runner-controller/actions-runner-controller/config//default?ref=v0.22.2
+- identity.yaml
+- runners.yaml

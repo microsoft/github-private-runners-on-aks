@@ -11,7 +11,7 @@ spec:
       - path: /
         backend:
           service:
-            name: actions-runner-controller-github-webhook-server
+            name: github-webhook-server
             port:
               number: 80
         pathType: Exact

@@ -73,7 +73,6 @@ An [example pipeline](.github/workflows/selfhosted-runner-test.yml) is provided 
 
 - AAD Pod identity being decomissionned, it should be replaced with [Azure Workload Identity](https://azure.github.io/azure-workload-identity/docs/installation.html)
 - RBAC roles must be set as per [documentation](https://azure.github.io/aad-pod-identity/docs/getting-started/role-assignment/#performing-role-assignments)
-- actions-runner-controller: the webhook server is not provided by default; thus a custom deployment has been added to this repository
 - **Never use private runners on public repo since anyone can use them**
 
 ## Cost Simulation

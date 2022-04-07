@@ -21,12 +21,11 @@ resource "azurerm_kubernetes_cluster" "github_runners" {
   location            = var.location
   resource_group_name = azurerm_resource_group.github_runners.name
   dns_prefix          = "githubrunners"
-  kubernetes_version  = "1.21.2"
   node_resource_group = "${azurerm_resource_group.github_runners.name}-nodes"
 
   identity {
-    type                      = "UserAssigned"
-    user_assigned_identity_id = azurerm_user_assigned_identity.aks.id
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aks.id]
   }
 
   default_node_pool {
@@ -36,17 +35,16 @@ resource "azurerm_kubernetes_cluster" "github_runners" {
     vnet_subnet_id = azurerm_subnet.cluster.id
   }
 
-  addon_profile {
-    ingress_application_gateway {
-      enabled   = var.enable_agic
+  dynamic "ingress_application_gateway" {
+    for_each = var.enable_agic ? [1] : []
+    content {
       subnet_id = azurerm_subnet.app_gw.id
     }
   }
 
   network_profile {
-    network_plugin    = "azure"
-    network_policy    = "azure"
-    load_balancer_sku = "Standard"
+    network_plugin = "azure"
+    network_policy = "azure"
   }
 }
 
